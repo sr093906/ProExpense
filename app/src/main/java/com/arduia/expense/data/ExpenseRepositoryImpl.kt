@@ -14,9 +14,10 @@ import com.arduia.expense.model.Result
 import com.arduia.expense.model.SuccessResult
 import kotlinx.coroutines.flow.*
 import java.util.*
+import javax.inject.Inject
 import kotlin.math.exp
 
-class ExpenseRepositoryImpl(
+class ExpenseRepositoryImpl @Inject constructor(
     private val expenseDao: ExpenseDao
 ) : ExpenseRepository {
 
@@ -97,6 +98,14 @@ class ExpenseRepositoryImpl(
             .catch { ErrorResult(RepositoryException(it)) }
     }
 
+    override suspend fun getExpenseTotalCountSync(): Result<Int> {
+        return try {
+            SuccessResult(expenseDao.getExpenseTotalCountSync())
+        } catch (e: Exception) {
+            ErrorResult(e)
+        }
+    }
+
     override suspend fun getMostRecentDateSync(): Result<Long> {
         return try {
             SuccessResult(expenseDao.getMostRecentDateSync())
@@ -111,6 +120,12 @@ class ExpenseRepositoryImpl(
         } catch (e: Exception) {
             ErrorResult(e)
         }
+    }
+
+    override fun getMaxAndMiniDateRange(): FlowResult<DateRangeDataModel> {
+        return expenseDao.getMaxAndMiniDateRange()
+            .map { SuccessResult(it) }
+            .catch { ErrorResult(RepositoryException(it)) }
     }
 
     override fun getExpenseRange(limit: Int, offset: Int): FlowResult<List<ExpenseEnt>> {
@@ -140,8 +155,6 @@ class ExpenseRepositoryImpl(
             .map { SuccessResult(it) }
             .catch { ErrorResult(RepositoryException(it)) }
     }
-
-
 
 
     private fun getWeekStartTime(): Long {
